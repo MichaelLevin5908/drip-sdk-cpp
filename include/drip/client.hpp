@@ -59,6 +59,37 @@ public:
     KeyType key_type() const;
 
     // =========================================================================
+    // Customer Management
+    // =========================================================================
+
+    /**
+     * Create a new customer.
+     * At least one of external_customer_id or onchain_address is required.
+     *
+     * @throws DripError on failure.
+     */
+    CustomerResult createCustomer(const CreateCustomerParams& params);
+
+    /**
+     * Get an existing customer by ID.
+     *
+     * @throws NotFoundError if customer doesn't exist.
+     */
+    CustomerResult getCustomer(const std::string& customer_id);
+
+    /**
+     * List customers with optional filters.
+     */
+    ListCustomersResult listCustomers(const ListCustomersOptions& options = ListCustomersOptions());
+
+    /**
+     * Get a customer's USDC balance.
+     *
+     * @throws NotFoundError if customer doesn't exist.
+     */
+    BalanceResult getBalance(const std::string& customer_id);
+
+    // =========================================================================
     // Health Check
     // =========================================================================
 

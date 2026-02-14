@@ -55,6 +55,44 @@ enum KeyType {
 typedef std::map<std::string, std::string> Metadata;
 
 // =============================================================================
+// Customer Management
+// =============================================================================
+
+struct CreateCustomerParams {
+    std::string external_customer_id; // Optional (at least one of this or onchain_address)
+    std::string onchain_address;      // Optional (at least one of this or external_customer_id)
+    Metadata metadata;                // Optional
+};
+
+struct CustomerResult {
+    std::string id;
+    std::string external_customer_id;
+    std::string onchain_address;
+    std::string status;              // ACTIVE, LOW_BALANCE, PAUSED
+    bool is_internal;
+    Metadata metadata;
+    std::string created_at;
+    std::string updated_at;
+};
+
+struct ListCustomersOptions {
+    int limit;            // 1-100, default 100
+    std::string status;   // Optional: ACTIVE, LOW_BALANCE, PAUSED
+
+    ListCustomersOptions() : limit(100) {}
+};
+
+struct ListCustomersResult {
+    std::vector<CustomerResult> customers;
+    int total;
+};
+
+struct BalanceResult {
+    std::string customer_id;
+    std::string balance_usdc;
+};
+
+// =============================================================================
 // Health Check
 // =============================================================================
 

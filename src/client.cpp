@@ -316,6 +316,77 @@ KeyType Client::key_type() const {
 }
 
 // =============================================================================
+// createCustomer()
+// =============================================================================
+
+static CustomerResult parse_customer(const json& data) {
+    CustomerResult r;
+    r.id = json_string(data, "id");
+    r.external_customer_id = json_string(data, "externalCustomerId");
+    r.onchain_address = json_string(data, "onchainAddress");
+    r.status = json_string(data, "status");
+    r.is_internal = json_bool(data, "isInternal", false);
+    if (data.contains("metadata") && data["metadata"].is_object()) {
+        r.metadata = metadata_from_json(data["metadata"]);
+    }
+    r.created_at = json_string(data, "createdAt");
+    r.updated_at = json_string(data, "updatedAt");
+    return r;
+}
+
+CustomerResult Client::createCustomer(const CreateCustomerParams& params) {
+    json body;
+    if (!params.external_customer_id.empty()) body["externalCustomerId"] = params.external_customer_id;
+    if (!params.onchain_address.empty()) body["onchainAddress"] = params.onchain_address;
+    if (!params.metadata.empty()) body["metadata"] = metadata_to_json(params.metadata);
+
+    return parse_customer(impl_->post("/customers", body));
+}
+
+// =============================================================================
+// getCustomer()
+// =============================================================================
+
+CustomerResult Client::getCustomer(const std::string& customer_id) {
+    return parse_customer(impl_->get("/customers/" + customer_id));
+}
+
+// =============================================================================
+// listCustomers()
+// =============================================================================
+
+ListCustomersResult Client::listCustomers(const ListCustomersOptions& options) {
+    std::ostringstream path;
+    path << "/customers?limit=" << options.limit;
+    if (!options.status.empty()) path << "&status=" << options.status;
+
+    json data = impl_->get(path.str());
+
+    ListCustomersResult result;
+    result.total = json_int(data, "count", 0);
+
+    if (data.contains("data") && data["data"].is_array()) {
+        for (size_t i = 0; i < data["data"].size(); ++i) {
+            result.customers.push_back(parse_customer(data["data"][i]));
+        }
+    }
+    return result;
+}
+
+// =============================================================================
+// getBalance()
+// =============================================================================
+
+BalanceResult Client::getBalance(const std::string& customer_id) {
+    json data = impl_->get("/customers/" + customer_id + "/balance");
+
+    BalanceResult r;
+    r.customer_id = json_string(data, "customerId");
+    r.balance_usdc = json_string(data, "balanceUsdc");
+    return r;
+}
+
+// =============================================================================
 // ping()
 // =============================================================================
 
