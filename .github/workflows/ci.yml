@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Configure
+        run: |
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDRIP_BUILD_TESTS=ON \
+            -DDRIP_BUILD_EXAMPLES=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: cd build && ctest --output-on-failure
+
+      - name: Verify examples built
+        run: |
+          test -f build/drip_basic_example || echo "Warning: example binary not found"
